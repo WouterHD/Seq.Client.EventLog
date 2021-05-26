@@ -1,27 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using Serilog.Events;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Seq.Client.EventLog
 {
     public static class Extensions
     {
-        private static string MapLogLevel(EventLogEntryType type)
+        private static LogEventLevel MapLogLevel(EventLogEntryType type)
         {
-            switch (type)
+            return type switch
             {
-                case EventLogEntryType.Information:
-                    return "Information";
-                case EventLogEntryType.Warning:
-                    return "Warning";
-                case EventLogEntryType.Error:
-                    return "Error";
-                case EventLogEntryType.SuccessAudit:
-                    return "Information";
-                case EventLogEntryType.FailureAudit:
-                    return "Warning";
-                default:
-                    return "Debug";
-            }
+                EventLogEntryType.Information  => LogEventLevel.Information,
+                EventLogEntryType.Warning      => LogEventLevel.Warning,
+                EventLogEntryType.Error        => LogEventLevel.Error,
+                EventLogEntryType.SuccessAudit => LogEventLevel.Information,
+                EventLogEntryType.FailureAudit => LogEventLevel.Warning,
+                _                              => LogEventLevel.Debug,
+            };
         }
 
         public static RawEvents ToDto(this EventLogEntry entry, string logName)

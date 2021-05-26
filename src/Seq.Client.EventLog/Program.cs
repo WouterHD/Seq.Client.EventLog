@@ -18,6 +18,11 @@ namespace Seq.Client.EventLog
         /// </summary>
         public static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.AppSettings()
+                .Enrich.FromLogContext()
+                .CreateLogger();
+
             // Allows the installation and uninstallation via the command line
             if (Environment.UserInteractive)
             {
@@ -48,10 +53,6 @@ namespace Seq.Client.EventLog
 
         static void RunInteractive(string configFilePath)
         {
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.Console()
-                .CreateLogger();
-
             try
             {
                 Log.Information("Running interactively");
@@ -83,21 +84,6 @@ namespace Seq.Client.EventLog
 
         static void RunService()
         {
-            var logFile = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                typeof(Program).Assembly.GetName().Name,
-                "ServiceLog.txt");
-
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.File(
-                    logFile,
-                    rollingInterval: RollingInterval.Day,
-                    rollOnFileSizeLimit: true,
-                    retainedFileCountLimit: 7,
-                    fileSizeLimitBytes: 10_000_000,
-                    shared: true)
-                .CreateLogger();
-
             try
             {
                 Log.Information("Running as service");

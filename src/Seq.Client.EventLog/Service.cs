@@ -4,7 +4,7 @@ namespace Seq.Client.EventLog
 {
     public partial class Service : ServiceBase
     {
-        private readonly EventLogClient _client = new EventLogClient();
+        private readonly EventLogClient _client = new();
 
         #region Windows Service Base
         public Service()
