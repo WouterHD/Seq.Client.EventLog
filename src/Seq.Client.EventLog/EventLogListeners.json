@@ -2,21 +2,21 @@
   {
     "LogName": "Application",
     "LogLevels": [ 1, 2 ],
-    "ProcessRetroactiveEntries": true
+    "ProcessRetroactiveEntries": false
   },
   {
     "LogName": "Security",
     "LogLevels": [ 16 ],
-    "ProcessRetroactiveEntries": true
+    "ProcessRetroactiveEntries": false
   },
   {
     "LogName": "Setup",
     "LogLevels": [ 1, 2 ],
-    "ProcessRetroactiveEntries": true
+    "ProcessRetroactiveEntries": false
   },
   {
     "LogName": "System",
     "LogLevels": [ 1, 2 ],
-    "ProcessRetroactiveEntries": true
+    "ProcessRetroactiveEntries": false
   }
 ]

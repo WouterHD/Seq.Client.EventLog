@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -19,7 +20,7 @@ namespace Seq.Client.EventLog
         public List<string> Sources { get; set; }
 
         private System.Diagnostics.EventLog _eventLog;
-        private readonly CancellationTokenSource _cancel = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancel = new();
         private Task _retroactiveLoadingTask;
         private volatile bool _started;
 
@@ -35,7 +36,7 @@ namespace Seq.Client.EventLog
         {
             try
             {
-                Serilog.Log.Information("Starting listener for {LogName} on {MachineName}", LogName, MachineName ?? ".");
+                Log.Logger.Information("Starting listener for {LogName} on {MachineName}", LogName, MachineName ?? ".");
 
                 _eventLog = OpenEventLog();
 
@@ -52,7 +53,7 @@ namespace Seq.Client.EventLog
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "Failed to start listener for {LogName} on {MachineName}", LogName, MachineName ?? ".");
+                Log.Logger.Error(ex, "Failed to start listener for {LogName} on {MachineName}", LogName, MachineName ?? ".");
             }
         }
 
@@ -84,11 +85,11 @@ namespace Seq.Client.EventLog
                 _eventLog.Close();
                 _eventLog.Dispose();
 
-                Serilog.Log.Information("Listener stopped");
+                Log.Logger.Information("Listener stopped");
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "Failed to stop listener");
+                Log.Logger.Error(ex, "Failed to stop listener");
             }
         }
 
@@ -98,23 +99,23 @@ namespace Seq.Client.EventLog
             {
                 using (var eventLog = OpenEventLog())
                 {
-                    Serilog.Log.Information("Processing {EntryCount} retroactive entries in {LogName}", eventLog.Entries.Count, LogName);
+                    Log.Logger.Information("Processing {EntryCount} retroactive entries in {LogName}", eventLog.Entries.Count, LogName);
 
                     foreach (EventLogEntry entry in eventLog.Entries)
                     {
                         if (_cancel.IsCancellationRequested)
                         {
-                            Serilog.Log.Warning("Canceling retroactive event loading");
+                            Log.Logger.Warning("Canceling retroactive event loading");
                             return;
                         }
 
-                        HandleEventLogEntry(entry, eventLog.Log).GetAwaiter().GetResult();
+                        HandleEventLogEntry(entry, eventLog.Log);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "Failed to send retroactive entries in {LogName} on {MachineName}", LogName, MachineName ?? ".");
+                Log.Logger.Error(ex, "Failed to send retroactive entries in {LogName} on {MachineName}", LogName, MachineName ?? ".");
             }
         }
 
@@ -122,15 +123,15 @@ namespace Seq.Client.EventLog
         {
             try
             {
-                HandleEventLogEntry(args.Entry, _eventLog.Log).GetAwaiter().GetResult();
+                HandleEventLogEntry(args.Entry, _eventLog.Log);
             }
             catch (Exception ex)
             {
-                Serilog.Log.Error(ex, "Failed to handle an event log entry");
+                Log.Logger.Error(ex, "Failed to handle an event log entry");
             }
         }
 
-        private async Task HandleEventLogEntry(EventLogEntry entry, string logName)
+        private void HandleEventLogEntry(EventLogEntry entry, string logName)
         {
             // Don't send the entry to Seq if it doesn't match the filtered log levels, event IDs, or sources
             if (LogLevels != null && LogLevels.Count > 0 && !LogLevels.Contains(entry.EntryType))
@@ -145,7 +146,7 @@ namespace Seq.Client.EventLog
             if (Sources != null && Sources.Count > 0 && !Sources.Contains(entry.Source))
                 return;
 
-            await SeqApi.PostRawEvents(entry.ToDto(logName));
+           EventConsumer.PostRawEvents(entry.ToDto(logName));
         }
     }
 }

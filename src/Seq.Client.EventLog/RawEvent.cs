@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog.Events;
+using System;
 using System.Collections.Generic;
 
 namespace Seq.Client.EventLog
@@ -8,7 +9,7 @@ namespace Seq.Client.EventLog
         public DateTimeOffset Timestamp { get; set; }
 
         // Uses the Serilog level names
-        public string Level { get; set; }
+        public LogEventLevel Level { get; set; }
 
         public string MessageTemplate { get; set; }
 
