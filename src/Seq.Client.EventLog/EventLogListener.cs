@@ -131,7 +131,7 @@ namespace Seq.Client.EventLog
             }
         }
 
-        private async void HandleEventLogEntry(EventLogEntry entry, string logName)
+        private void HandleEventLogEntry(EventLogEntry entry, string logName)
         {
             // Don't send the entry to Seq if it doesn't match the filtered log levels, event IDs, or sources
             if (LogLevels != null && LogLevels.Count > 0 && !LogLevels.Contains(entry.EntryType))

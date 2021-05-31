@@ -1,6 +1,9 @@
 ﻿using Serilog;
 using Serilog.Context;
 using Serilog.Events;
+using Serilog.Parsing;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Seq.Client.EventLog
@@ -11,46 +14,20 @@ namespace Seq.Client.EventLog
         {
             foreach(var rawEvent in rawEvents.Events)
             {
-                PostEvent(rawEvent);
+                var exception = new Exception(rawEvent.Exception);
+                var template = new MessageTemplateParser().Parse(rawEvent.MessageTemplate);
+                var properties = new List<LogEventProperty>();
+                foreach(var prop in rawEvent.Properties)
+                {
+                    properties.Add(new LogEventProperty(prop.Key, new ScalarValue(prop.Value)));
+                }
+                
+                properties.Add(new LogEventProperty("Timestamp", new ScalarValue(rawEvent.Timestamp)));
+
+                var logEvent = new LogEvent(rawEvent.Timestamp, rawEvent.Level, exception, template, properties);
+
+                Log.Logger.Write(logEvent);
             }
-        }
-
-        private static async void PostEvent(RawEvent rawEvent)
-        {
-            await Task.Run(() => {
-                LogContext.PushProperty("Timestamp", rawEvent.Timestamp);
-                LogContext.PushProperty("Level", rawEvent.Level);
-                foreach (var prop in rawEvent.Properties)
-                {
-                    LogContext.PushProperty(prop.Key, prop.Value);
-                }
-
-                switch (rawEvent.Level)
-                {
-                    case LogEventLevel.Information:
-                        Log.Logger.Information(rawEvent.MessageTemplate, rawEvent.Properties);
-                        break;
-
-                    case LogEventLevel.Warning:
-                        Log.Logger.Warning(rawEvent.MessageTemplate, rawEvent.Properties);
-                        break;
-
-                    case LogEventLevel.Error:
-                        Log.Logger.Error(rawEvent.MessageTemplate, rawEvent.Properties);
-                        break;
-
-                    case LogEventLevel.Debug:
-                        Log.Logger.Debug(rawEvent.MessageTemplate, rawEvent.Properties);
-                        break;
-
-                    case LogEventLevel.Verbose:
-                        Log.Logger.Verbose(rawEvent.MessageTemplate, rawEvent.Properties);
-                        break;
-
-                    default:
-                        break;
-                }
-            });
         }
     }
 }
