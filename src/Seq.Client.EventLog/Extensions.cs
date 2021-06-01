@@ -37,7 +37,7 @@ namespace Seq.Client.EventLog
                             { "EventId", entry.EventID },
 #pragma warning restore 618
                             { "InstanceId", entry.InstanceId },
-                            { "Source", entry.Source },
+                            { "EventSource", entry.Source },
                             { "Category", entry.CategoryNumber },
                             { "EventLogName", logName }
                         }
