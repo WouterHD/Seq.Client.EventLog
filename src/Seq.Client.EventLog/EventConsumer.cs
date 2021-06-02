@@ -14,7 +14,12 @@ namespace Seq.Client.EventLog
         {
             foreach(var rawEvent in rawEvents.Events)
             {
-                var exception = new Exception(rawEvent.Exception);
+                Exception exception = null;
+                if (!string.IsNullOrEmpty(rawEvent.Exception))
+                {
+                    exception = new Exception(rawEvent.Exception);
+                }
+
                 var template = new MessageTemplateParser().Parse(rawEvent.MessageTemplate);
                 var properties = new List<LogEventProperty>();
                 foreach(var prop in rawEvent.Properties)
