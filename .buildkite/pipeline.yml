@@ -1,0 +1,5 @@
+steps:
+  - label: Create Package
+    commands: ".buildkite/build-and-release.bat"
+    agents:
+     host: "windows"
